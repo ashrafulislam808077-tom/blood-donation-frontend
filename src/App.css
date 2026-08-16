@@ -2,29 +2,36 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-  background-color: #f4f7f6;
+body, html {
+  background-color: #f2f4f7;
+  min-height: 100vh;
 }
 
-.app-container {
-  max-width: 600px;
-  margin: 30px auto;
+.main-bg {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 15px;
+}
+
+.card-container {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 30px;
 }
 
 .header h1 {
   text-align: center;
   color: #8b0000;
-  font-size: 22px;
-  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 25px;
 }
 
 .nav-buttons {
@@ -32,64 +39,74 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .nav-buttons button {
-  padding: 8px 14px;
+  padding: 8px 16px;
   border: 1px solid #dc3545;
-  background-color: #fff;
+  background-color: #ffffff;
   color: #dc3545;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: 0.2s;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
 }
 
-.nav-buttons button.active,
+.nav-buttons button.active, 
 .nav-buttons button:hover {
   background-color: #dc3545;
-  color: #fff;
+  color: #ffffff;
 }
 
-.content-card h2 {
+.content-section h2 {
   text-align: center;
   color: #8b0000;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   font-size: 20px;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
   display: flex;
   flex-direction: column;
 }
 
 .form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #333333;
+  font-size: 15px;
 }
 
-.form-group input,
+.form-group input, 
 .form-group select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
   font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus, 
+.form-group select:focus {
+  border-color: #dc3545;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   background-color: #8b0000;
-  color: white;
+  color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   margin-top: 10px;
+  transition: background-color 0.2s;
 }
 
 .submit-btn:hover {
@@ -97,10 +114,26 @@ body {
 }
 
 .donor-card {
-  border: 1px solid #eee;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #fdfdfd;
-  margin-bottom: 12px;
+  border: 1px solid #eef0f2;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #fafafa;
+  margin-bottom: 15px;
   border-left: 5px solid #dc3545;
+}
+
+.donor-card h3 {
+  color: #8b0000;
+  margin-bottom: 8px;
+}
+
+.donor-card p {
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.loading-text, .empty-text {
+  text-align: center;
+  color: #666;
+  padding: 20px 0;
 }
