@@ -5,18 +5,14 @@ import './App.css';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://blood-donation-backend-rscs.onrender.com';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('search'); // 'search', 'register', 'login', 'request', 'all-requests'
-  
-  // States for Search & Donors
+  const [activeTab, setActiveTab] = useState('search');
   const [selectedGroup, setSelectedGroup] = useState('B+');
   const [donors, setDonors] = useState([]);
   const [loadingDonors, setLoadingDonors] = useState(false);
 
-  // States for Login (Using Phone Number)
   const [loginPhone, setLoginPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // States for Registration
   const [regData, setRegData] = useState({
     name: '',
     email: '',
@@ -29,7 +25,6 @@ function App() {
   });
   const [profilePic, setProfilePic] = useState(null);
 
-  // States for Requests
   const [requests, setRequests] = useState([]);
   const [requestData, setRequestData] = useState({
     patientName: '',
@@ -40,7 +35,6 @@ function App() {
     details: ''
   });
 
-  // Fetch Donors by Blood Group
   useEffect(() => {
     if (activeTab === 'search') {
       fetchDonors();
@@ -59,7 +53,6 @@ function App() {
     }
   };
 
-  // Fetch Blood Requests
   useEffect(() => {
     if (activeTab === 'all-requests') {
       fetchRequests();
@@ -75,7 +68,6 @@ function App() {
     }
   };
 
-  // Handle Donor Registration
   const handleRegister = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -95,7 +87,6 @@ function App() {
     }
   };
 
-  // Handle Login with Phone
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginPhone || !loginPassword) {
@@ -115,7 +106,6 @@ function App() {
     }
   };
 
-  // Handle Submit Blood Request
   const handleBloodRequest = async (e) => {
     e.preventDefault();
     try {
@@ -129,12 +119,10 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header className="header">
         <h1>🩸 যুবশক্তি ব্লাড ডোনেশন (কিশোরগঞ্জ)</h1>
       </header>
 
-      {/* Navigation Buttons */}
       <nav className="nav-buttons">
         <button className={activeTab === 'request' ? 'active' : ''} onClick={() => setActiveTab('request')}>
           🩸 রক্তের আবেদন
@@ -153,10 +141,7 @@ function App() {
         </button>
       </nav>
 
-      {/* Main Content Area */}
       <main className="content-card">
-
-        {/* 1. SEARCH DONORS */}
         {activeTab === 'search' && (
           <div className="tab-content">
             <h2>🔍 ডোনার খুঁজুন</h2>
@@ -190,7 +175,6 @@ function App() {
           </div>
         )}
 
-        {/* 2. DONOR LOGIN */}
         {activeTab === 'login' && (
           <div className="tab-content">
             <h2>🔑 ডোনার লগইন</h2>
@@ -222,7 +206,6 @@ function App() {
           </div>
         )}
 
-        {/* 3. DONOR REGISTRATION */}
         {activeTab === 'register' && (
           <div className="tab-content">
             <h2>📝 নতুন ডোনার রেজিস্ট্রেশন</h2>
@@ -298,7 +281,6 @@ function App() {
           </div>
         )}
 
-        {/* 4. BLOOD REQUEST */}
         {activeTab === 'request' && (
           <div className="tab-content">
             <h2>🩸 রক্তের জন্য আবেদন</h2>
@@ -340,7 +322,6 @@ function App() {
           </div>
         )}
 
-        {/* 5. ALL REQUESTS LIST */}
         {activeTab === 'all-requests' && (
           <div className="tab-content">
             <h2>📋 সকল রক্তের রিকোয়েস্ট</h2>
@@ -359,7 +340,6 @@ function App() {
             </div>
           </div>
         )}
-
       </main>
     </div>
   );
