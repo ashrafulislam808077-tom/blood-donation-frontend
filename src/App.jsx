@@ -212,6 +212,9 @@ function App() {
                     value={requestData.donationDate}
                     onChange={(e) => setRequestData({ ...requestData, donationDate: e.target.value })}
                   />
+                  <small style={{ color: '#666', marginTop: '4px', fontSize: '12px' }}>
+                    (ফরম্যাট: দিন / মাস / বছর)
+                  </small>
                 </div>
 
                 <div className="form-group">
@@ -402,7 +405,12 @@ function App() {
                       <p><strong>প্রয়োজনীয় গ্রুপ:</strong> {req.bloodGroup}</p>
                       <p><strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
                       <p><strong>পরিমাণ:</strong> {req.amount}</p>
-                      <p><strong>তারিখ:</strong> {req.donationDate}</p>
+                      <p>
+                        <strong>তারিখ:</strong>{' '}
+                        {req.donationDate
+                          ? req.donationDate.split('-').reverse().join('-')
+                          : 'N/A'}
+                      </p>
                       <p><strong>স্থান:</strong> {req.donationPlace}</p>
                       <p><strong>যোগাযোগ:</strong> {req.contactPhone}</p>
                       {req.reference && <p><strong>রেফারেন্স:</strong> {req.reference}</p>}
