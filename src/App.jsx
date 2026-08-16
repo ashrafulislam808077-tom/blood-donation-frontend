@@ -26,13 +26,18 @@ function App() {
   const [profilePic, setProfilePic] = useState(null);
 
   const [requests, setRequests] = useState([]);
+  
+  // তারিখের জন্য আলাদা দিন, মাস ও বছর স্টেট
+  const [dobDay, setDobDay] = useState('01');
+  const [dobMonth, setDobMonth] = useState('01');
+  const [dobYear, setDobYear] = useState('2026');
+
   const [requestData, setRequestData] = useState({
     patientName: '',
     problem: '',
     bloodGroup: 'A+',
     hemoglobin: '',
     amount: '',
-    donationDate: '',
     donationPlace: '',
     contactPhone: '',
     reference: ''
@@ -111,14 +116,22 @@ function App() {
 
   const handleBloodRequest = async (e) => {
     e.preventDefault();
+    // দিন-মাস-বছর ফরম্যাটে তারিখ তৈরি
+    const formattedDate = `${dobDay}-${dobMonth}-${dobYear}`;
+    const finalData = { ...requestData, donationDate: formattedDate };
+
     try {
-      await axios.post(`${API_BASE_URL}/api/requests`, requestData);
+      await axios.post(`${API_BASE_URL}/api/requests`, finalData);
       alert('রক্তের আবেদন জমা হয়েছে!');
       setActiveTab('all-requests');
     } catch (err) {
       alert('আবেদন জমা দিতে সমস্যা হয়েছে!');
     }
   };
+
+  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const years = ['2026', '2027'];
 
   return (
     <div className="main-bg">
@@ -205,16 +218,26 @@ function App() {
                 </div>
 
                 <div className="form-group">
-                  <label>রক্তদানের তারিখ:</label>
-                  <input
-                    type="date"
-                    required
-                    value={requestData.donationDate}
-                    onChange={(e) => setRequestData({ ...requestData, donationDate: e.target.value })}
-                  />
-                  <small style={{ color: '#666', marginTop: '4px', fontSize: '12px' }}>
-                    (ফরম্যাট: দিন / মাস / বছর)
-                  </small>
+                  <label>রক্তদানের তারিখ (দিন / মাস / বছর):</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select value={dobDay} onChange={(e) => setDobDay(e.target.value)} style={{ flex: 1 }}>
+                      {days.map((d) => (
+                        <option key={d} value={d}>{d} দিন</option>
+                      ))}
+                    </select>
+
+                    <select value={dobMonth} onChange={(e) => setDobMonth(e.target.value)} style={{ flex: 1 }}>
+                      {months.map((m) => (
+                        <option key={m} value={m}>{m} মাস</option>
+                      ))}
+                    </select>
+
+                    <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} style={{ flex: 1 }}>
+                      {years.map((y) => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -405,12 +428,7 @@ function App() {
                       <p><strong>প্রয়োজনীয় গ্রুপ:</strong> {req.bloodGroup}</p>
                       <p><strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
                       <p><strong>পরিমাণ:</strong> {req.amount}</p>
-                      <p>
-                        <strong>তারিখ:</strong>{' '}
-                        {req.donationDate
-                          ? req.donationDate.split('-').reverse().join('-')
-                          : 'N/A'}
-                      </p>
+                      <p><strong>তারিখ:</strong> {req.donationDate || 'N/A'}</p>
                       <p><strong>স্থান:</strong> {req.donationPlace}</p>
                       <p><strong>যোগাযোগ:</strong> {req.contactPhone}</p>
                       {req.reference && <p><strong>রেফারেন্স:</strong> {req.reference}</p>}
