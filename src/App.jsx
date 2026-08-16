@@ -26,8 +26,8 @@ function App() {
   const [profilePic, setProfilePic] = useState(null);
 
   const [requests, setRequests] = useState([]);
-  
-  // তারিখের জন্য আলাদা দিন, মাস ও বছর স্টেট
+
+  // তারিখের জন্য আলাদা দিন, মাস ও বছর
   const [dobDay, setDobDay] = useState('01');
   const [dobMonth, setDobMonth] = useState('01');
   const [dobYear, setDobYear] = useState('2026');
@@ -116,16 +116,16 @@ function App() {
 
   const handleBloodRequest = async (e) => {
     e.preventDefault();
-    // দিন-মাস-বছর ফরম্যাটে তারিখ তৈরি
     const formattedDate = `${dobDay}-${dobMonth}-${dobYear}`;
     const finalData = { ...requestData, donationDate: formattedDate };
 
     try {
-      await axios.post(`${API_BASE_URL}/api/requests`, finalData);
-      alert('রক্তের আবেদন জমা হয়েছে!');
+      const res = await axios.post(`${API_BASE_URL}/api/requests`, finalData);
+      alert(res.data.message || 'রক্তের আবেদন জমা হয়েছে!');
       setActiveTab('all-requests');
     } catch (err) {
-      alert('আবেদন জমা দিতে সমস্যা হয়েছে!');
+      console.error("Submit Error:", err.response?.data);
+      alert(err.response?.data?.message || 'আবেদন জমা দিতে সমস্যা হয়েছে!');
     }
   };
 
