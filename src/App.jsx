@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import logo from './logo.png'; // src/logo.png ফাইলটি থাকতে হবে
 
 const API_BASE_URL = 'https://blood-donation-backend-56c5.onrender.com';
 
@@ -155,7 +156,10 @@ function App() {
   return (
     <div className="container">
       <header className="header">
-        <h1>🩸 যুবশক্তি ব্লাড ডোনেশন (কিশোরগঞ্জ) 🩸</h1>
+        <div className="logo-title-container">
+          <img src={logo} alt="Logo" className="header-logo" />
+          <h1>যুবশক্তি ব্লাড ডোনেশন (কিশোরগঞ্জ)</h1>
+        </div>
         {currentUser && <p className="welcome-tag">স্বাগতম, {currentUser.name}!</p>}
         
         <div className="nav-buttons">
