@@ -69,10 +69,9 @@ function App() {
     }
   }, [activeTab, selectedGroup]);
 
-  // Handle Blood Request Input
-  const handleReqChange = (e) => {
-    setReqData({ ...reqData, [e.target.name]: e.target.value });
-  };
+  // Handle Input Changes
+  const handleReqChange = (e) => setReqData({ ...reqData, [e.target.name]: e.target.value });
+  const handleRegisterChange = (e) => setRegisterData({ ...registerData, [e.target.name]: e.target.value });
 
   // Submit Blood Request
   const handleReqSubmit = async (e) => {
@@ -95,11 +94,6 @@ function App() {
     } catch (err) {
       alert('আবেদন জমা দিতে সমস্যা হয়েছে!');
     }
-  };
-
-  // Handle Registration Input
-  const handleRegisterChange = (e) => {
-    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
 
   // Submit Registration
@@ -305,7 +299,6 @@ function App() {
                         src={`${API_BASE_URL}${donor.imageUrl}`} 
                         alt={donor.name} 
                         className="donor-img"
-                        style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px auto', display: 'block' }}
                       />
                     ) : (
                       <div className="no-img">ছবি নেই</div>
@@ -330,7 +323,7 @@ function App() {
             <div className="donor-list">
               {requests.length > 0 ? (
                 requests.map((req, idx) => (
-                  <div key={idx} className="donor-card request-card">
+                  <div key={idx} className="donor-card">
                     <h3>রিকোয়েস্ট নং: #{req.reqNo || (requests.length - idx)}</h3>
                     <p><strong>রোগী:</strong> {req.patientName}</p>
                     <p><strong>সমস্যা:</strong> {req.problem || 'N/A'}</p>

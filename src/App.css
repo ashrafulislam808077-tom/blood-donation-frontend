@@ -5,33 +5,36 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body, html {
-  background-color: #f2f4f7;
-  min-height: 100vh;
+body {
+  background-color: #f4f6f9;
+  color: #333;
+  padding: 20px 10px;
 }
 
-.main-bg {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 15px;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.card-container {
-  background: #ffffff;
-  width: 100%;
-  max-width: 650px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  padding: 30px;
+.header {
+  text-align: center;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
 }
 
 .header h1 {
-  text-align: center;
   color: #8b0000;
   font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
+}
+
+.welcome-tag {
+  color: #2e7d32;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
 
 .nav-buttons {
@@ -39,87 +42,110 @@ body, html {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 30px;
 }
 
 .nav-buttons button {
-  padding: 8px 16px;
-  border: 1px solid #dc3545;
-  background-color: #ffffff;
-  color: #dc3545;
-  border-radius: 8px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease-in-out;
+  color: #444;
+  transition: all 0.2s ease;
 }
 
-.nav-buttons button.active, 
-.nav-buttons button:hover {
-  background-color: #dc3545;
-  color: #ffffff;
+.nav-buttons button.active, .nav-buttons button:hover {
+  background: #8b0000;
+  color: white;
+  border-color: #8b0000;
 }
 
-.content-section h2 {
+.form-card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.form-card h2 {
   text-align: center;
   color: #8b0000;
-  margin-bottom: 25px;
-  font-size: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 15px;
   display: flex;
   flex-direction: column;
 }
 
 .form-group label {
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 6px;
-  color: #333333;
-  font-size: 15px;
+  color: #444;
 }
 
 .form-group input, 
 .form-group select {
-  padding: 12px;
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
 }
 
 .form-group input:focus, 
 .form-group select:focus {
-  border-color: #dc3545;
+  outline: none;
+  border-color: #8b0000;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 13px;
-  background-color: #8b0000;
-  color: #ffffff;
+  background: #8b0000;
+  color: white;
+  padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   margin-top: 10px;
-  transition: background-color 0.2s;
 }
 
 .submit-btn:hover {
-  background-color: #a00000;
+  background: #660000;
+}
+
+.filter-box {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-box select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.donor-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
 }
 
 .donor-card {
-  border: 1px solid #eef0f2;
-  padding: 16px;
-  border-radius: 10px;
-  background-color: #fafafa;
-  margin-bottom: 15px;
-  border-left: 5px solid #dc3545;
+  background: white;
+  padding: 18px;
+  border-radius: 8px;
+  border-left: 5px solid #8b0000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .donor-card h3 {
@@ -128,12 +154,44 @@ body, html {
 }
 
 .donor-card p {
-  margin-bottom: 4px;
-  color: #444;
+  margin-bottom: 6px;
+  font-size: 14px;
 }
 
-.loading-text, .empty-text {
+.donor-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 12px auto;
+  border: 2px solid #8b0000;
+}
+
+.no-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+  font-size: 12px;
+  color: #777;
+}
+
+.group-badge {
+  background: #8b0000;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.empty-text {
   text-align: center;
+  grid-column: 1 / -1;
   color: #666;
-  padding: 20px 0;
+  padding: 20px;
 }
