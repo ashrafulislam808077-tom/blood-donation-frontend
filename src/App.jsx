@@ -13,7 +13,7 @@ function App() {
     problem: '',
     bloodGroup: 'A+',
     hemoglobin: '',
-    amount: '',
+    units: '',
     donationDate: '',
     donationPlace: '',
     contactPhone: '',
@@ -41,7 +41,7 @@ function App() {
   const [donors, setDonors] = useState([]);
   const [requests, setRequests] = useState([]);
 
-  // Fetch Donors by Blood Group
+  // Fetch Donors
   const fetchDonors = async (group) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/donors?group=${encodeURIComponent(group)}`);
@@ -51,7 +51,7 @@ function App() {
     }
   };
 
-  // Fetch All Blood Requests
+  // Fetch Requests
   const fetchRequests = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/requests`);
@@ -69,22 +69,33 @@ function App() {
     }
   }, [activeTab, selectedGroup]);
 
-  // Handle Input Changes
   const handleReqChange = (e) => setReqData({ ...reqData, [e.target.name]: e.target.value });
   const handleRegisterChange = (e) => setRegisterData({ ...registerData, [e.target.name]: e.target.value });
 
-  // Submit Blood Request
+  // Submit Request
   const handleReqSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/requests`, reqData);
-      alert(res.data.message || 'রক্তের আবেদন জমা হয়েছে!');
+      const payload = {
+        patientName: reqData.patientName,
+        problem: reqData.problem,
+        bloodGroup: reqData.bloodGroup,
+        hemoglobin: reqData.hemoglobin,
+        units: reqData.units,
+        donationDate: reqData.donationDate,
+        donationPlace: reqData.donationPlace,
+        contactPhone: reqData.contactPhone,
+        reference: reqData.reference
+      };
+      
+      const res = await axios.post(`${API_BASE_URL}/api/requests`, payload);
+      alert(res.data.message || 'রক্তের আবেদন সফলভাবে জমা হয়েছে!');
       setReqData({
         patientName: '',
         problem: '',
         bloodGroup: 'A+',
         hemoglobin: '',
-        amount: '',
+        units: '',
         donationDate: '',
         donationPlace: '',
         contactPhone: '',
@@ -92,7 +103,7 @@ function App() {
       });
       setActiveTab('all-requests');
     } catch (err) {
-      alert('আবেদন জমা দিতে সমস্যা হয়েছে!');
+      alert('আবেদন জমা দিতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।');
     }
   };
 
@@ -114,14 +125,7 @@ function App() {
     try {
       const res = await axios.post(`${API_BASE_URL}/api/register`, formData);
       alert(res.data.message || 'রেজিস্ট্রেশন সফল হয়েছে!');
-      setRegisterData({
-        name: '',
-        email: '',
-        phone: '',
-        bloodGroup: 'A+',
-        address: '',
-        password: ''
-      });
+      setRegisterData({ name: '', email: '', phone: '', bloodGroup: 'A+', address: '', password: '' });
       setProfilePic(null);
       setActiveTab('login');
     } catch (err) {
@@ -171,7 +175,7 @@ function App() {
       </header>
 
       <main className="content">
-        {/* ১. রক্তের আবেদনের ফর্ম */}
+        {/* ১. রক্তের আবেদন */}
         {activeTab === 'request' && (
           <form onSubmit={handleReqSubmit} className="form-card">
             <h2>🩸 রক্তের আবেদন জানান</h2>
@@ -202,12 +206,12 @@ function App() {
 
             <div className="form-group">
               <label>রক্তের পরিমাণ (ব্যাগ):</label>
-              <input type="text" name="amount" value={reqData.amount} onChange={handleReqChange} required />
+              <input type="text" name="units" value={reqData.units} onChange={handleReqChange} required />
             </div>
 
             <div className="form-group">
-              <label>রক্তদানের তারিখ:</label>
-              <input type="date" name="donationDate" value={reqData.donationDate} onChange={handleReqChange} required />
+              <label>রক্তদানের তারিখ (dd/mm/yyyy):</label>
+              <input type="text" name="donationDate" placeholder="dd/mm/yyyy" value={reqData.donationDate} onChange={handleReqChange} required />
             </div>
 
             <div className="form-group">
@@ -229,7 +233,7 @@ function App() {
           </form>
         )}
 
-        {/* ২. রেজিস্ট্রেশন ফর্ম */}
+        {/* ২. রেজিস্ট্রেশন */}
         {activeTab === 'register' && (
           <form onSubmit={handleRegisterSubmit} className="form-card">
             <h2>📝 ডোনার রেজিস্ট্রেশন</h2>
@@ -295,11 +299,7 @@ function App() {
                 donors.map((donor, idx) => (
                   <div key={idx} className="donor-card">
                     {donor.imageUrl ? (
-                      <img 
-                        src={`${API_BASE_URL}${donor.imageUrl}`} 
-                        alt={donor.name} 
-                        className="donor-img"
-                      />
+                      <img src={`${API_BASE_URL}${donor.imageUrl}`} alt={donor.name} className="donor-img" />
                     ) : (
                       <div className="no-img">ছবি নেই</div>
                     )}
@@ -329,7 +329,7 @@ function App() {
                     <p><strong>সমস্যা:</strong> {req.problem || 'N/A'}</p>
                     <p><strong>গ্রুপ:</strong> <span className="group-badge">{req.bloodGroup}</span></p>
                     <p><strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
-                    <p><strong>পরিমাণ:</strong> {req.amount}</p>
+                    <p><strong>পরিমাণ:</strong> {req.units || req.amount} ব্যাগ</p>
                     <p><strong>তারিখ:</strong> {req.donationDate || 'N/A'}</p>
                     <p><strong>স্থান:</strong> {req.donationPlace}</p>
                     <p><strong>যোগাযোগ:</strong> <a href={`tel:${req.contactPhone}`}>{req.contactPhone}</a></p>
