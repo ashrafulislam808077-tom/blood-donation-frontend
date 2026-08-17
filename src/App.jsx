@@ -2,446 +2,361 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://blood-donation-backend-rscs.onrender.com';
+const API_BASE_URL = 'https://blood-donation-backend-56c5.onrender.com';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('request');
-  const [selectedGroup, setSelectedGroup] = useState('B+');
-  const [donors, setDonors] = useState([]);
-  const [loadingDonors, setLoadingDonors] = useState(false);
-
-  const [loginPhone, setLoginPhone] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  const [regData, setRegData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bloodGroup: 'A+',
-    address: '',
-    password: '',
-    securityQuestion: 'আপনার শৈশবের ডাকনাম কি?',
-    securityAnswer: ''
-  });
-  const [profilePic, setProfilePic] = useState(null);
-
-  const [requests, setRequests] = useState([]);
-
-  // তারিখের জন্য আলাদা দিন, মাস ও বছর
-  const [dobDay, setDobDay] = useState('01');
-  const [dobMonth, setDobMonth] = useState('01');
-  const [dobYear, setDobYear] = useState('2026');
-
-  const [requestData, setRequestData] = useState({
+  const [activeTab, setActiveTab] = useState('search'); // 'request', 'register', 'search', 'all-requests', 'login'
+  
+  // Blood Request State
+  const [reqData, setReqData] = useState({
     patientName: '',
     problem: '',
     bloodGroup: 'A+',
     hemoglobin: '',
     amount: '',
+    donationDate: '',
     donationPlace: '',
     contactPhone: '',
     reference: ''
   });
 
-  useEffect(() => {
-    if (activeTab === 'search') {
-      fetchDonors();
-    }
-  }, [selectedGroup, activeTab]);
+  // Registration State
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    bloodGroup: 'A+',
+    address: '',
+    password: ''
+  });
+  const [profilePic, setProfilePic] = useState(null);
 
-  const fetchDonors = async () => {
-    setLoadingDonors(true);
+  // Login State
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Search & Request Lists
+  const [selectedGroup, setSelectedGroup] = useState('A+');
+  const [donors, setDonors] = useState([]);
+  const [requests, setRequests] = useState([]);
+
+  // Fetch Donors by Blood Group
+  const fetchDonors = async (group) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/donors?group=${encodeURIComponent(selectedGroup)}`);
-      setDonors(res.data || []);
+      const res = await axios.get(`${API_BASE_URL}/api/donors?group=${encodeURIComponent(group)}`);
+      setDonors(res.data);
     } catch (err) {
-      console.error("Error fetching donors:", err);
-    } finally {
-      setLoadingDonors(false);
+      console.error('Donors fetch error:', err);
     }
   };
 
-  useEffect(() => {
-    if (activeTab === 'all-requests') {
-      fetchRequests();
-    }
-  }, [activeTab]);
-
+  // Fetch All Blood Requests
   const fetchRequests = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/requests`);
-      setRequests(res.data || []);
+      setRequests(res.data);
     } catch (err) {
-      console.error("Error fetching requests:", err);
+      console.error('Requests fetch error:', err);
     }
   };
 
-  const handleRegister = async (e) => {
+  useEffect(() => {
+    if (activeTab === 'search') {
+      fetchDonors(selectedGroup);
+    } else if (activeTab === 'all-requests') {
+      fetchRequests();
+    }
+  }, [activeTab, selectedGroup]);
+
+  // Handle Blood Request Input
+  const handleReqChange = (e) => {
+    setReqData({ ...reqData, [e.target.name]: e.target.value });
+  };
+
+  // Submit Blood Request
+  const handleReqSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/requests`, reqData);
+      alert(res.data.message || 'রক্তের আবেদন জমা হয়েছে!');
+      setReqData({
+        patientName: '',
+        problem: '',
+        bloodGroup: 'A+',
+        hemoglobin: '',
+        amount: '',
+        donationDate: '',
+        donationPlace: '',
+        contactPhone: '',
+        reference: ''
+      });
+      setActiveTab('all-requests');
+    } catch (err) {
+      alert('আবেদন জমা দিতে সমস্যা হয়েছে!');
+    }
+  };
+
+  // Handle Registration Input
+  const handleRegisterChange = (e) => {
+    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
+  };
+
+  // Submit Registration
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    Object.keys(regData).forEach((key) => formData.append(key, regData[key]));
+    formData.append('name', registerData.name);
+    formData.append('email', registerData.email);
+    formData.append('phone', registerData.phone.trim());
+    formData.append('bloodGroup', registerData.bloodGroup);
+    formData.append('address', registerData.address);
+    formData.append('password', registerData.password.trim());
+
     if (profilePic) {
       formData.append('image', profilePic);
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/register`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axios.post(`${API_BASE_URL}/api/register`, formData);
       alert(res.data.message || 'রেজিস্ট্রেশন সফল হয়েছে!');
+      setRegisterData({
+        name: '',
+        email: '',
+        phone: '',
+        bloodGroup: 'A+',
+        address: '',
+        password: ''
+      });
+      setProfilePic(null);
       setActiveTab('login');
     } catch (err) {
       alert(err.response?.data?.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে!');
     }
   };
 
-  const handleLogin = async (e) => {
+  // Submit Login
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    if (!loginPhone || !loginPassword) {
-      alert('মোবাইল নম্বর এবং পাসওয়ার্ড দিন!');
-      return;
-    }
-
     try {
       const res = await axios.post(`${API_BASE_URL}/api/login`, {
-        phone: loginPhone,
-        password: loginPassword
+        phone: loginPhone.trim(),
+        password: loginPassword.trim()
       });
       alert(res.data.message || 'লগইন সফল হয়েছে!');
+      setCurrentUser(res.data.user);
       setActiveTab('search');
     } catch (err) {
       alert(err.response?.data?.message || 'মোবাইল নম্বর বা পাসওয়ার্ড ভুল!');
     }
   };
 
-  const handleBloodRequest = async (e) => {
-    e.preventDefault();
-    const formattedDate = `${dobDay}-${dobMonth}-${dobYear}`;
-    const finalData = { ...requestData, donationDate: formattedDate };
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}/api/requests`, finalData);
-      alert(res.data.message || 'রক্তের আবেদন জমা হয়েছে!');
-      setActiveTab('all-requests');
-    } catch (err) {
-      console.error("Submit Error:", err.response?.data);
-      alert(err.response?.data?.message || 'আবেদন জমা দিতে সমস্যা হয়েছে!');
-    }
-  };
-
-  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
-  const years = ['2026', '2027'];
-
   return (
-    <div className="main-bg">
-      <div className="card-container">
-        <header className="header">
-          <h1>🩸 যুবশক্তি ব্লাড ডোনেশন (কিশোরগঞ্জ) 🩸</h1>
-        </header>
-
-        <nav className="nav-buttons">
-          <button className={activeTab === 'request' ? 'active' : ''} onClick={() => setActiveTab('request')}>
+    <div className="container">
+      <header className="header">
+        <h1>🩸 যুবশক্তি ব্লাড ডোনেশন (কিশোরগঞ্জ) 🩸</h1>
+        {currentUser && <p className="welcome-tag">স্বাগতম, {currentUser.name}!</p>}
+        
+        <div className="nav-buttons">
+          <button 
+            className={activeTab === 'request' ? 'active' : ''} 
+            onClick={() => setActiveTab('request')}
+          >
             🩸 রক্তের আবেদন
           </button>
-          <button className={activeTab === 'register' ? 'active' : ''} onClick={() => setActiveTab('register')}>
+          <button 
+            className={activeTab === 'register' ? 'active' : ''} 
+            onClick={() => setActiveTab('register')}
+          >
             📝 রেজিস্ট্রেশন
           </button>
-          <button className={activeTab === 'search' ? 'active' : ''} onClick={() => setActiveTab('search')}>
+          <button 
+            className={activeTab === 'search' ? 'active' : ''} 
+            onClick={() => setActiveTab('search')}
+          >
             🔍 ডোনার খুঁজুন
           </button>
-          <button className={activeTab === 'all-requests' ? 'active' : ''} onClick={() => setActiveTab('all-requests')}>
+          <button 
+            className={activeTab === 'all-requests' ? 'active' : ''} 
+            onClick={() => setActiveTab('all-requests')}
+          >
             📋 সকল রিকোয়েস্ট
           </button>
-          <button className={activeTab === 'login' ? 'active' : ''} onClick={() => setActiveTab('login')}>
+          <button 
+            className={activeTab === 'login' ? 'active' : ''} 
+            onClick={() => setActiveTab('login')}
+          >
             🔑 লগইন
           </button>
-        </nav>
+        </div>
+      </header>
 
-        <main className="content-section">
-          {activeTab === 'request' && (
-            <div>
-              <h2>🩸 রক্তের জন্য আবেদন</h2>
-              <form onSubmit={handleBloodRequest}>
-                <div className="form-group">
-                  <label>রোগীর নাম:</label>
-                  <input
-                    type="text"
-                    required
-                    value={requestData.patientName}
-                    onChange={(e) => setRequestData({ ...requestData, patientName: e.target.value })}
-                  />
-                </div>
+      <main className="content">
+        {/* ১. রক্তের আবেদনের ফর্ম */}
+        {activeTab === 'request' && (
+          <form onSubmit={handleReqSubmit} className="form-card">
+            <h2>🩸 রক্তের আবেদন জানান</h2>
+            
+            <label>রোগীর নাম:</label>
+            <input type="text" name="patientName" value={reqData.patientName} onChange={handleReqChange} required />
 
-                <div className="form-group">
-                  <label>রোগীর সমস্যা:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="যেমন: অপারেশন / ডেঙ্গু"
-                    value={requestData.problem}
-                    onChange={(e) => setRequestData({ ...requestData, problem: e.target.value })}
-                  />
-                </div>
+            <label>রোগীর সমস্যা:</label>
+            <input type="text" name="problem" value={reqData.problem} onChange={handleReqChange} />
 
-                <div className="form-group">
-                  <label>রক্তের গ্রুপ প্রয়োজন:</label>
-                  <select
-                    value={requestData.bloodGroup}
-                    onChange={(e) => setRequestData({ ...requestData, bloodGroup: e.target.value })}
-                  >
-                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
-                      <option key={group} value={group}>{group}</option>
-                    ))}
-                  </select>
-                </div>
+            <label>রক্তের গ্রুপ:</label>
+            <select name="bloodGroup" value={reqData.bloodGroup} onChange={handleReqChange}>
+              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
 
-                <div className="form-group">
-                  <label>হিমোগ্লোবিন:</label>
-                  <input
-                    type="text"
-                    placeholder="যেমন: 30%"
-                    value={requestData.hemoglobin}
-                    onChange={(e) => setRequestData({ ...requestData, hemoglobin: e.target.value })}
-                  />
-                </div>
+            <label>হিমোগ্লোবিন (%):</label>
+            <input type="text" name="hemoglobin" value={reqData.hemoglobin} onChange={handleReqChange} />
 
-                <div className="form-group">
-                  <label>রক্তের পরিমাণ:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="যেমন: ১ ব্যাগ"
-                    value={requestData.amount}
-                    onChange={(e) => setRequestData({ ...requestData, amount: e.target.value })}
-                  />
-                </div>
+            <label>রক্তের পরিমাণ (ব্যাগ):</label>
+            <input type="text" name="amount" value={reqData.amount} onChange={handleReqChange} required />
 
-                <div className="form-group">
-                  <label>রক্তদানের তারিখ (দিন / মাস / বছর):</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <select value={dobDay} onChange={(e) => setDobDay(e.target.value)} style={{ flex: 1 }}>
-                      {days.map((d) => (
-                        <option key={d} value={d}>{d} দিন</option>
-                      ))}
-                    </select>
+            <label>রক্তদানের তারিখ:</label>
+            <input type="date" name="donationDate" value={reqData.donationDate} onChange={handleReqChange} required />
 
-                    <select value={dobMonth} onChange={(e) => setDobMonth(e.target.value)} style={{ flex: 1 }}>
-                      {months.map((m) => (
-                        <option key={m} value={m}>{m} মাস</option>
-                      ))}
-                    </select>
+            <label>রক্তদানের স্থান:</label>
+            <input type="text" name="donationPlace" value={reqData.donationPlace} onChange={handleReqChange} required />
 
-                    <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} style={{ flex: 1 }}>
-                      {years.map((y) => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+            <label>যোগাযোগের নম্বর:</label>
+            <input type="tel" name="contactPhone" value={reqData.contactPhone} onChange={handleReqChange} required />
 
-                <div className="form-group">
-                  <label>রক্তদানের স্থান:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="হাসপাতাল / এলাকার নাম"
-                    value={requestData.donationPlace}
-                    onChange={(e) => setRequestData({ ...requestData, donationPlace: e.target.value })}
-                  />
-                </div>
+            <label>রেফারেন্স (ঐচ্ছিক):</label>
+            <input type="text" name="reference" value={reqData.reference} onChange={handleReqChange} />
 
-                <div className="form-group">
-                  <label>যোগাযোগ:</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="মোবাইল নম্বর"
-                    value={requestData.contactPhone}
-                    onChange={(e) => setRequestData({ ...requestData, contactPhone: e.target.value })}
-                  />
-                </div>
+            <button type="submit" className="submit-btn">আবেদন জমা দিন</button>
+          </form>
+        )}
 
-                <div className="form-group">
-                  <label>রেফারেন্স:</label>
-                  <input
-                    type="text"
-                    placeholder="কারো রেফারেন্স থাকলে লিখুন"
-                    value={requestData.reference}
-                    onChange={(e) => setRequestData({ ...requestData, reference: e.target.value })}
-                  />
-                </div>
+        {/* ২. রেজিস্ট্রেশন ফর্ম */}
+        {activeTab === 'register' && (
+          <form onSubmit={handleRegisterSubmit} className="form-card">
+            <h2>📝 ডোনার রেজিস্ট্রেশন</h2>
 
-                <button type="submit" className="submit-btn">আবেদন পাঠান</button>
-              </form>
+            <label>নাম:</label>
+            <input type="text" name="name" value={registerData.name} onChange={handleRegisterChange} required />
+
+            <label>ইমেইল (ঐচ্ছিক):</label>
+            <input type="email" name="email" value={registerData.email} onChange={handleRegisterChange} />
+
+            <label>ফোন নম্বর:</label>
+            <input type="tel" name="phone" value={registerData.phone} onChange={handleRegisterChange} required />
+
+            <label>রক্তের গ্রুপ:</label>
+            <select name="bloodGroup" value={registerData.bloodGroup} onChange={handleRegisterChange}>
+              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+
+            <label>ঠিকানা:</label>
+            <input type="text" name="address" value={registerData.address} onChange={handleRegisterChange} required />
+
+            <label>পাসওয়ার্ড:</label>
+            <input type="password" name="password" value={registerData.password} onChange={handleRegisterChange} required />
+
+            <label>প্রোফাইল ছবি (ঐচ্ছিক):</label>
+            <input type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files[0])} />
+
+            <button type="submit" className="submit-btn">রেজিস্ট্রেশন সম্পন্ন করুন</button>
+          </form>
+        )}
+
+        {/* ৩. ডোনার খোঁজা */}
+        {activeTab === 'search' && (
+          <div>
+            <h2>🔍 ডোনার খুঁজুন</h2>
+            <div className="filter-box">
+              <label>রক্তের গ্রুপ নির্বাচন করুন: </label>
+              <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
+                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
             </div>
-          )}
 
-          {activeTab === 'search' && (
-            <div>
-              <h2>🔍 ডোনার খুঁজুন</h2>
-              <div className="form-group">
-                <label>রক্তের গ্রুপ নির্বাচন করুন:</label>
-                <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
-                    <option key={group} value={group}>{group}</option>
-                  ))}
-                </select>
-              </div>
-
-              {loadingDonors ? (
-                <p className="loading-text">ডোনারের তথ্য লোড হচ্ছে...</p>
+            <div className="donor-list">
+              {donors.length > 0 ? (
+                donors.map((donor, idx) => (
+                  <div key={idx} className="donor-card">
+                    {donor.imageUrl ? (
+                      <img 
+                        src={`${API_BASE_URL}${donor.imageUrl}`} 
+                        alt={donor.name} 
+                        className="donor-img"
+                      />
+                    ) : (
+                      <div className="no-img">ছবি নেই</div>
+                    )}
+                    <h3>{donor.name}</h3>
+                    <p><strong>রক্তের গ্রুপ:</strong> {donor.bloodGroup}</p>
+                    <p><strong>ফোন:</strong> <a href={`tel:${donor.phone}`}>{donor.phone}</a></p>
+                    <p><strong>ঠিকানা:</strong> {donor.address || 'N/A'}</p>
+                  </div>
+                ))
               ) : (
-                <div className="donor-list">
-                  {donors.length > 0 ? (
-                    donors.map((donor, index) => (
-                      <div key={index} className="donor-card">
-                        <h3>{donor.name}</h3>
-                        <p><strong>রক্তের গ্রুপ:</strong> {donor.bloodGroup}</p>
-                        <p><strong>ফোন:</strong> {donor.phone}</p>
-                        <p><strong>ঠিকানা:</strong> {donor.address}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="empty-text">এই রক্তের গ্রুপের কোনো ডোনার পাওয়া যায়নি।</p>
-                  )}
-                </div>
+                <p className="empty-text">এই গ্রুপের কোনো ডোনার পাওয়া যায়নি।</p>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'login' && (
-            <div>
-              <h2>🔑 ডোনার লগইন</h2>
-              <form onSubmit={handleLogin}>
-                <div className="form-group">
-                  <label>ইমেইল / মোবাইল নম্বর:</label>
-                  <input
-                    type="text"
-                    placeholder="আপনার ফোন নম্বর লিখুন"
-                    value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>পাসওয়ার্ড:</label>
-                  <input
-                    type="password"
-                    placeholder="পাসওয়ার্ড লিখুন"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button type="submit" className="submit-btn">লগইন</button>
-              </form>
+        {/* ৪. সকল রিকোয়েস্ট */}
+        {activeTab === 'all-requests' && (
+          <div>
+            <h2>📋 সকল রক্তের রিকোয়েস্ট</h2>
+            <div className="donor-list">
+              {requests.length > 0 ? (
+                requests.map((req, idx) => (
+                  <div key={idx} className="donor-card request-card">
+                    <h3>রিকোয়েস্ট নং: #{req.reqNo || (requests.length - idx)}</h3>
+                    <p><strong>রোগী:</strong> {req.patientName}</p>
+                    <p><strong>সমস্যা:</strong> {req.problem || 'N/A'}</p>
+                    <p><strong>গ্রুপ:</strong> <span className="group-badge">{req.bloodGroup}</span></p>
+                    <p><strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
+                    <p><strong>পরিমাণ:</strong> {req.amount}</p>
+                    <p><strong>তারিখ:</strong> {req.donationDate || 'N/A'}</p>
+                    <p><strong>স্থান:</strong> {req.donationPlace}</p>
+                    <p><strong>যোগাযোগ:</strong> <a href={`tel:${req.contactPhone}`}>{req.contactPhone}</a></p>
+                    {req.reference && <p><strong>রেফারেন্স:</strong> {req.reference}</p>}
+                  </div>
+                ))
+              ) : (
+                <p className="empty-text">কোনো রিকোয়েস্ট পাওয়া যায়নি।</p>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'register' && (
-            <div>
-              <h2>📝 নতুন ডোনার রেজিস্ট্রেশন</h2>
-              <form onSubmit={handleRegister}>
-                <div className="form-group">
-                  <label>নাম:</label>
-                  <input
-                    type="text"
-                    required
-                    value={regData.name}
-                    onChange={(e) => setRegData({ ...regData, name: e.target.value })}
-                  />
-                </div>
+        {/* ৫. ডোনার লগইন */}
+        {activeTab === 'login' && (
+          <form onSubmit={handleLoginSubmit} className="form-card">
+            <h2>🔑 ডোনার লগইন</h2>
 
-                <div className="form-group">
-                  <label>ইমেইল:</label>
-                  <input
-                    type="email"
-                    value={regData.email}
-                    onChange={(e) => setRegData({ ...regData, email: e.target.value })}
-                  />
-                </div>
+            <label>মোবাইল নম্বর:</label>
+            <input 
+              type="tel" 
+              value={loginPhone} 
+              onChange={(e) => setLoginPhone(e.target.value)} 
+              required 
+            />
 
-                <div className="form-group">
-                  <label>ফোন নম্বর:</label>
-                  <input
-                    type="tel"
-                    required
-                    value={regData.phone}
-                    onChange={(e) => setRegData({ ...regData, phone: e.target.value })}
-                  />
-                </div>
+            <label>পাসওয়ার্ড:</label>
+            <input 
+              type="password" 
+              value={loginPassword} 
+              onChange={(e) => setLoginPassword(e.target.value)} 
+              required 
+            />
 
-                <div className="form-group">
-                  <label>রক্তের গ্রুপ:</label>
-                  <select
-                    value={regData.bloodGroup}
-                    onChange={(e) => setRegData({ ...regData, bloodGroup: e.target.value })}
-                  >
-                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
-                      <option key={group} value={group}>{group}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>ঠিকানা:</label>
-                  <input
-                    type="text"
-                    required
-                    value={regData.address}
-                    onChange={(e) => setRegData({ ...regData, address: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>পাসওয়ার্ড:</label>
-                  <input
-                    type="password"
-                    required
-                    value={regData.password}
-                    onChange={(e) => setRegData({ ...regData, password: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>প্রোফাইল ছবি (ঐচ্ছিক):</label>
-                  <input type="file" onChange={(e) => setProfilePic(e.target.files[0])} />
-                </div>
-
-                <button type="submit" className="submit-btn">রেজিস্ট্রেশন সম্পূর্ণ করুন</button>
-              </form>
-            </div>
-          )}
-
-          {activeTab === 'all-requests' && (
-            <div>
-              <h2>📋 সকল রক্তের রিকোয়েস্ট</h2>
-              <div className="donor-list">
-                {requests.length > 0 ? (
-                  requests.map((req, i) => (
-                    <div key={i} className="donor-card">
-                      <h3>রোগী: {req.patientName}</h3>
-                      <p><strong>সমস্যা:</strong> {req.problem}</p>
-                      <p><strong>প্রয়োজনীয় গ্রুপ:</strong> {req.bloodGroup}</p>
-                      <p><strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
-                      <p><strong>পরিমাণ:</strong> {req.amount}</p>
-                      <p><strong>তারিখ:</strong> {req.donationDate || 'N/A'}</p>
-                      <p><strong>স্থান:</strong> {req.donationPlace}</p>
-                      <p><strong>যোগাযোগ:</strong> {req.contactPhone}</p>
-                      {req.reference && <p><strong>রেফারেন্স:</strong> {req.reference}</p>}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-text">কোনো রিকোয়েস্ট পাওয়া যায়নি।</p>
-                )}
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+            <button type="submit" className="submit-btn">লগইন</button>
+          </form>
+        )}
+      </main>
     </div>
   );
 }
