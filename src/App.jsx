@@ -81,6 +81,7 @@ function App() {
         problem: reqData.problem,
         bloodGroup: reqData.bloodGroup,
         hemoglobin: reqData.hemoglobin,
+        amount: reqData.units,
         units: reqData.units,
         donationDate: reqData.donationDate,
         donationPlace: reqData.donationPlace,
@@ -103,7 +104,9 @@ function App() {
       });
       setActiveTab('all-requests');
     } catch (err) {
-      alert('আবেদন জমা দিতে সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।');
+      console.error('Request Error Details:', err.response?.data || err.message);
+      const errMsg = err.response?.data?.message || err.response?.data?.error || 'আবেদন জমা দিতে সমস্যা হয়েছে!';
+      alert(errMsg);
     }
   };
 
