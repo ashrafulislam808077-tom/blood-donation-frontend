@@ -5,7 +5,7 @@ import './App.css';
 const API_BASE_URL = 'https://blood-donation-backend-56c5.onrender.com';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('search'); // 'request', 'register', 'search', 'all-requests', 'login'
+  const [activeTab, setActiveTab] = useState('search');
   
   // Blood Request State
   const [reqData, setReqData] = useState({
@@ -158,34 +158,19 @@ function App() {
         {currentUser && <p className="welcome-tag">স্বাগতম, {currentUser.name}!</p>}
         
         <div className="nav-buttons">
-          <button 
-            className={activeTab === 'request' ? 'active' : ''} 
-            onClick={() => setActiveTab('request')}
-          >
+          <button className={activeTab === 'request' ? 'active' : ''} onClick={() => setActiveTab('request')}>
             🩸 রক্তের আবেদন
           </button>
-          <button 
-            className={activeTab === 'register' ? 'active' : ''} 
-            onClick={() => setActiveTab('register')}
-          >
+          <button className={activeTab === 'register' ? 'active' : ''} onClick={() => setActiveTab('register')}>
             📝 রেজিস্ট্রেশন
           </button>
-          <button 
-            className={activeTab === 'search' ? 'active' : ''} 
-            onClick={() => setActiveTab('search')}
-          >
+          <button className={activeTab === 'search' ? 'active' : ''} onClick={() => setActiveTab('search')}>
             🔍 ডোনার খুঁজুন
           </button>
-          <button 
-            className={activeTab === 'all-requests' ? 'active' : ''} 
-            onClick={() => setActiveTab('all-requests')}
-          >
+          <button className={activeTab === 'all-requests' ? 'active' : ''} onClick={() => setActiveTab('all-requests')}>
             📋 সকল রিকোয়েস্ট
           </button>
-          <button 
-            className={activeTab === 'login' ? 'active' : ''} 
-            onClick={() => setActiveTab('login')}
-          >
+          <button className={activeTab === 'login' ? 'active' : ''} onClick={() => setActiveTab('login')}>
             🔑 লগইন
           </button>
         </div>
@@ -197,36 +182,54 @@ function App() {
           <form onSubmit={handleReqSubmit} className="form-card">
             <h2>🩸 রক্তের আবেদন জানান</h2>
             
-            <label>রোগীর নাম:</label>
-            <input type="text" name="patientName" value={reqData.patientName} onChange={handleReqChange} required />
+            <div className="form-group">
+              <label>রোগীর নাম:</label>
+              <input type="text" name="patientName" value={reqData.patientName} onChange={handleReqChange} required />
+            </div>
 
-            <label>রোগীর সমস্যা:</label>
-            <input type="text" name="problem" value={reqData.problem} onChange={handleReqChange} />
+            <div className="form-group">
+              <label>রোগীর সমস্যা:</label>
+              <input type="text" name="problem" value={reqData.problem} onChange={handleReqChange} />
+            </div>
 
-            <label>রক্তের গ্রুপ:</label>
-            <select name="bloodGroup" value={reqData.bloodGroup} onChange={handleReqChange}>
-              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
+            <div className="form-group">
+              <label>রক্তের গ্রুপ:</label>
+              <select name="bloodGroup" value={reqData.bloodGroup} onChange={handleReqChange}>
+                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
 
-            <label>হিমোগ্লোবিন (%):</label>
-            <input type="text" name="hemoglobin" value={reqData.hemoglobin} onChange={handleReqChange} />
+            <div className="form-group">
+              <label>হিমোগ্লোবিন (%):</label>
+              <input type="text" name="hemoglobin" value={reqData.hemoglobin} onChange={handleReqChange} />
+            </div>
 
-            <label>রক্তের পরিমাণ (ব্যাগ):</label>
-            <input type="text" name="amount" value={reqData.amount} onChange={handleReqChange} required />
+            <div className="form-group">
+              <label>রক্তের পরিমাণ (ব্যাগ):</label>
+              <input type="text" name="amount" value={reqData.amount} onChange={handleReqChange} required />
+            </div>
 
-            <label>রক্তদানের তারিখ:</label>
-            <input type="date" name="donationDate" value={reqData.donationDate} onChange={handleReqChange} required />
+            <div className="form-group">
+              <label>রক্তদানের তারিখ:</label>
+              <input type="date" name="donationDate" value={reqData.donationDate} onChange={handleReqChange} required />
+            </div>
 
-            <label>রক্তদানের স্থান:</label>
-            <input type="text" name="donationPlace" value={reqData.donationPlace} onChange={handleReqChange} required />
+            <div className="form-group">
+              <label>রক্তদানের স্থান:</label>
+              <input type="text" name="donationPlace" value={reqData.donationPlace} onChange={handleReqChange} required />
+            </div>
 
-            <label>যোগাযোগের নম্বর:</label>
-            <input type="tel" name="contactPhone" value={reqData.contactPhone} onChange={handleReqChange} required />
+            <div className="form-group">
+              <label>যোগাযোগের নম্বর:</label>
+              <input type="tel" name="contactPhone" value={reqData.contactPhone} onChange={handleReqChange} required />
+            </div>
 
-            <label>রেফারেন্স (ঐচ্ছিক):</label>
-            <input type="text" name="reference" value={reqData.reference} onChange={handleReqChange} />
+            <div className="form-group">
+              <label>রেফারেন্স (ঐচ্ছিক):</label>
+              <input type="text" name="reference" value={reqData.reference} onChange={handleReqChange} />
+            </div>
 
             <button type="submit" className="submit-btn">আবেদন জমা দিন</button>
           </form>
@@ -237,30 +240,44 @@ function App() {
           <form onSubmit={handleRegisterSubmit} className="form-card">
             <h2>📝 ডোনার রেজিস্ট্রেশন</h2>
 
-            <label>নাম:</label>
-            <input type="text" name="name" value={registerData.name} onChange={handleRegisterChange} required />
+            <div className="form-group">
+              <label>নাম:</label>
+              <input type="text" name="name" value={registerData.name} onChange={handleRegisterChange} required />
+            </div>
 
-            <label>ইমেইল (ঐচ্ছিক):</label>
-            <input type="email" name="email" value={registerData.email} onChange={handleRegisterChange} />
+            <div className="form-group">
+              <label>ইমেইল (ঐচ্ছিক):</label>
+              <input type="email" name="email" value={registerData.email} onChange={handleRegisterChange} />
+            </div>
 
-            <label>ফোন নম্বর:</label>
-            <input type="tel" name="phone" value={registerData.phone} onChange={handleRegisterChange} required />
+            <div className="form-group">
+              <label>ফোন নম্বর:</label>
+              <input type="tel" name="phone" value={registerData.phone} onChange={handleRegisterChange} required />
+            </div>
 
-            <label>রক্তের গ্রুপ:</label>
-            <select name="bloodGroup" value={registerData.bloodGroup} onChange={handleRegisterChange}>
-              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
+            <div className="form-group">
+              <label>রক্তের গ্রুপ:</label>
+              <select name="bloodGroup" value={registerData.bloodGroup} onChange={handleRegisterChange}>
+                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
 
-            <label>ঠিকানা:</label>
-            <input type="text" name="address" value={registerData.address} onChange={handleRegisterChange} required />
+            <div className="form-group">
+              <label>ঠিকানা:</label>
+              <input type="text" name="address" value={registerData.address} onChange={handleRegisterChange} required />
+            </div>
 
-            <label>পাসওয়ার্ড:</label>
-            <input type="password" name="password" value={registerData.password} onChange={handleRegisterChange} required />
+            <div className="form-group">
+              <label>পাসওয়ার্ড:</label>
+              <input type="password" name="password" value={registerData.password} onChange={handleRegisterChange} required />
+            </div>
 
-            <label>প্রোফাইল ছবি (ঐচ্ছিক):</label>
-            <input type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files[0])} />
+            <div className="form-group">
+              <label>প্রোফাইল ছবি (ঐচ্ছিক):</label>
+              <input type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files[0])} />
+            </div>
 
             <button type="submit" className="submit-btn">রেজিস্ট্রেশন সম্পন্ন করুন</button>
           </form>
@@ -288,6 +305,7 @@ function App() {
                         src={`${API_BASE_URL}${donor.imageUrl}`} 
                         alt={donor.name} 
                         className="donor-img"
+                        style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px auto', display: 'block' }}
                       />
                     ) : (
                       <div className="no-img">ছবি নেই</div>
@@ -337,21 +355,15 @@ function App() {
           <form onSubmit={handleLoginSubmit} className="form-card">
             <h2>🔑 ডোনার লগইন</h2>
 
-            <label>মোবাইল নম্বর:</label>
-            <input 
-              type="tel" 
-              value={loginPhone} 
-              onChange={(e) => setLoginPhone(e.target.value)} 
-              required 
-            />
+            <div className="form-group">
+              <label>মোবাইল নম্বর:</label>
+              <input type="tel" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} required />
+            </div>
 
-            <label>পাসওয়ার্ড:</label>
-            <input 
-              type="password" 
-              value={loginPassword} 
-              onChange={(e) => setLoginPassword(e.target.value)} 
-              required 
-            />
+            <div className="form-group">
+              <label>পাসওয়ার্ড:</label>
+              <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
+            </div>
 
             <button type="submit" className="submit-btn">লগইন</button>
           </form>
