@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import logo from './assets/logo.png'; // লোগো ফাইল ইমপোর্ট নিশ্চিত করুন
 
-// ✅ Render ব্যাকএন্ডের সঠিক URL
 const API_BASE_URL = 'https://blood-donation-backend-rscs.onrender.com/api';
 
 function App() {
@@ -9,47 +9,55 @@ function App() {
   const [donors, setDonors] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [serverStatus, setServerStatus] = useState('চেকিং...');
+  const [user, setUser] = useState(null);
 
-  // নতুন রক্তের আবেদনের ফর্ম স্টেট
+  // ১. রক্তের আবেদনের স্টেট
   const [requestForm, setRequestForm] = useState({
-    patientName: '',
-    problem: '',
+    patientProblem: '',
     bloodGroup: 'A+',
     hemoglobin: '',
-    units: '1',
+    amount: '',
+    donationTime: '',
     donationDate: '',
     donationPlace: '',
     contactPhone: '',
     reference: ''
   });
 
-  // ডোনারদের তালিকা ফেচ করা (Safe Response Handling)
+  // ২. ডোনার রেজিস্ট্রেশনের স্টেট
+  const [regForm, setRegForm] = useState({
+    name: '',
+    bloodGroup: 'A+',
+    phone: '',
+    password: '',
+    email: '',
+    address: '',
+    securityAnswer: ''
+  });
+  const [imageFile, setImageFile] = useState(null);
+
+  // ৩. লগইন ও পাসওয়ার্ড রিসেট স্টেট
+  const [loginForm, setLoginForm] = useState({ phone: '', password: '' });
+  const [showReset, setShowReset] = useState(false);
+  const [resetForm, setResetForm] = useState({ phone: '', securityAnswer: '', newPassword: '' });
+
   const fetchDonors = async (group) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/donors?group=${encodeURIComponent(group)}`);
-      // অ্যারে সরাসরি না আসলেও সেফলি হ্যান্ডেল করবে
-      const donorData = Array.isArray(response.data) ? response.data : (response.data.donors || []);
-      setDonors(donorData);
-      setServerStatus('সচল (Connected)');
-    } catch (error) {
-      console.error('Donors fetch error:', error);
+      const res = await axios.get(`${API_BASE_URL}/donors?group=${encodeURIComponent(group)}`);
+      setDonors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
       setDonors([]);
-      setServerStatus('সার্ভার কানেকশন সমস্যা! কিছুক্ষন পর চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
   };
 
-  // রক্তের রিকোয়েস্টগুলোর তালিকা ফেচ করা
   const fetchRequests = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/requests`);
-      const requestData = Array.isArray(response.data) ? response.data : (response.data.requests || []);
-      setRequests(requestData);
-    } catch (error) {
-      console.error('Requests fetch error:', error);
+      const res = await axios.get(`${API_BASE_URL}/requests`);
+      setRequests(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
       setRequests([]);
     }
   };
@@ -59,154 +67,212 @@ function App() {
     fetchRequests();
   }, [selectedGroup]);
 
-  // রক্তের আবেদনের সাবমিট হ্যান্ডলার
+  // সাবমিট হ্যান্ডলারসমূহ
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_BASE_URL}/requests`, requestForm);
-      alert(response.data.message || 'রক্তের আবেদন সফলভাবে জমা হয়েছে!');
-      
-      setRequestForm({
-        patientName: '',
-        problem: '',
-        bloodGroup: 'A+',
-        hemoglobin: '',
-        units: '1',
-        donationDate: '',
-        donationPlace: '',
-        contactPhone: '',
-        reference: ''
-      });
-      
+      const res = await axios.post(`${API_BASE_URL}/requests`, requestForm);
+      alert(res.data.message);
+      setRequestForm({ patientProblem: '', bloodGroup: 'A+', hemoglobin: '', amount: '', donationTime: '', donationDate: '', donationPlace: '', contactPhone: '', reference: '' });
       fetchRequests();
-    } catch (error) {
-      console.error('Request Error Details:', error);
-      alert('রক্তের আবেদন জমা নিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } catch (err) {
+      alert('রক্তের আবেদন জমা নিতে সমস্যা হয়েছে!');
     }
   };
 
-  const handleInputChange = (e) => {
-    setRequestForm({
-      ...requestForm,
-      [e.target.name]: e.target.value
-    });
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    Object.keys(regForm).forEach(key => formData.append(key, regForm[key]));
+    if (imageFile) formData.append('image', imageFile);
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}/register`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert(res.data.message);
+      setRegForm({ name: '', bloodGroup: 'A+', phone: '', password: '', email: '', address: '', securityAnswer: '' });
+      setImageFile(null);
+      fetchDonors(selectedGroup);
+    } catch (err) {
+      alert(err.response?.data?.message || 'রেজিস্ট্রেশনে ত্রুটি হয়েছে!');
+    }
+  };
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE_URL}/login`, loginForm);
+      alert('লগইন সফল হয়েছে!');
+      setUser(res.data.user);
+      setLoginForm({ phone: '', password: '' });
+    } catch (err) {
+      alert(err.response?.data?.message || 'লগইন তথ্য সঠিক নয়!');
+    }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE_URL}/reset-password`, resetForm);
+      alert(res.data.message);
+      setShowReset(false);
+      setResetForm({ phone: '', securityAnswer: '', newPassword: '' });
+    } catch (err) {
+      alert(err.response?.data?.message || 'পাসওয়ার্ড রিসেট সফল হয়নি!');
+    }
   };
 
   return (
     <div style={styles.container}>
-      {/* হেডার সেকশন */}
+      {/* হেডার ও লোগো */}
       <header style={styles.header}>
-        <h1 style={styles.title}>যুবশক্তি রক্তদান সেবা</h1>
-        <p style={styles.subtitle}>Juboshokti Blood Donation Platform</p>
-        <span style={{ fontSize: '12px', opacity: 0.8 }}>সার্ভার স্টেটাস: {serverStatus}</span>
+        <img src={logo} alt="Logo" style={styles.logo} />
+        <div>
+          <h1 style={styles.headerTitle}>যুবশক্তি ব্লাড ডোনেশন কিশোরগঞ্জ</h1>
+          <p style={{ margin: 0, opacity: 0.9 }}>রক্তদানই হোক আমাদের অঙ্গীকার</p>
+        </div>
       </header>
 
-      {/* মূল কন্টেন্ট গ্রিড */}
-      <div style={styles.grid}>
-        {/* বামপাশে: ডোনার সার্চ সেকশন */}
-        <section style={styles.card}>
-          <h2 style={styles.cardTitle}>🩸 ডোনার খুঁজুন</h2>
-          <div style={styles.filterBox}>
-            <label style={{ fontWeight: 'bold' }}>রক্তের গ্রুপ নির্বাচন করুন: </label>
-            <select 
-              value={selectedGroup} 
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              style={styles.selectInput}
-            >
-              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
-                <option key={group} value={group}>{group}</option>
-              ))}
-            </select>
-          </div>
+      {/* ১. রক্তের আবেদন ফর্ম */}
+      <section style={styles.card}>
+        <h2 style={styles.cardTitle}>🩸 ১. রক্তের আবেদন করুন</h2>
+        <form onSubmit={handleRequestSubmit} style={styles.formGrid}>
+          <input type="text" placeholder="রোগীর সমস্যা" value={requestForm.patientProblem} onChange={(e) => setRequestForm({...requestForm, patientProblem: e.target.value})} style={styles.input} />
+          
+          <select value={requestForm.bloodGroup} onChange={(e) => setRequestForm({...requestForm, bloodGroup: e.target.value})} style={styles.input}>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
 
-          <div style={{ marginTop: '20px' }}>
-            {loading ? (
-              <p style={{ color: '#e74c3c', fontWeight: 'bold' }}>সার্ভার থেকে ডাটা লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...</p>
-            ) : donors.length > 0 ? (
-              <div style={styles.listContainer}>
-                {donors.map((donor, idx) => (
-                  <div key={donor._id || idx} style={styles.listItem}>
-                    <h4 style={{ margin: '0 0 5px 0', color: '#c0392b' }}>{donor.name} ({donor.bloodGroup})</h4>
-                    <p style={{ margin: '2px 0', fontSize: '14px' }}>📍 ঠিকানা: {donor.address || 'উল্লেখ নেই'}</p>
-                    <p style={{ margin: '2px 0', fontSize: '14px' }}>📞 ফোন: <strong>{donor.phone}</strong></p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: '#7f8c8d' }}>এই গ্রুপের কোনো রক্তদাতা ডাটাবেজে পাওয়া যায়নি।</p>
-            )}
-          </div>
-        </section>
+          <input type="text" placeholder="হিমোগ্লোবিন" value={requestForm.hemoglobin} onChange={(e) => setRequestForm({...requestForm, hemoglobin: e.target.value})} style={styles.input} />
+          <input type="text" placeholder="রক্তের পরিমাণ" value={requestForm.amount} onChange={(e) => setRequestForm({...requestForm, amount: e.target.value})} required style={styles.input} />
+          <input type="text" placeholder="রক্ত দানের সময়" value={requestForm.donationTime} onChange={(e) => setRequestForm({...requestForm, donationTime: e.target.value})} style={styles.input} />
+          <input type="text" placeholder="রক্তদানের তারিখ" value={requestForm.donationDate} onChange={(e) => setRequestForm({...requestForm, donationDate: e.target.value})} required style={styles.input} />
+          <input type="text" placeholder="রক্তদানের স্থান" value={requestForm.donationPlace} onChange={(e) => setRequestForm({...requestForm, donationPlace: e.target.value})} required style={styles.input} />
+          <input type="text" placeholder="যোগাযোগ" value={requestForm.contactPhone} onChange={(e) => setRequestForm({...requestForm, contactPhone: e.target.value})} required style={styles.input} />
+          <input type="text" placeholder="রেফারেন্স (ঐচ্ছিক)" value={requestForm.reference} onChange={(e) => setRequestForm({...requestForm, reference: e.target.value})} style={styles.input} />
+          
+          <button type="submit" style={{ ...styles.btn, gridColumn: '1 / -1' }}>আবেদন জমা দিন</button>
+        </form>
+      </section>
 
-        {/* ডানপাশে: রক্তের ফর্ম সেকশন */}
-        <section style={styles.card}>
-          <h2 style={styles.cardTitle}>📝 রক্তের আবেদন করুন</h2>
-          <form onSubmit={handleRequestSubmit} style={styles.form}>
-            <input type="text" name="patientName" placeholder="রোগীর নাম" value={requestForm.patientName} onChange={handleInputChange} required style={styles.input} />
-            <input type="text" name="problem" placeholder="রোগীর সমস্যা/কারণ" value={requestForm.problem} onChange={handleInputChange} style={styles.input} />
-            
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <select name="bloodGroup" value={requestForm.bloodGroup} onChange={handleInputChange} style={{ ...styles.input, flex: 1 }}>
-                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
-                  <option key={group} value={group}>{group}</option>
-                ))}
-              </select>
-              <input type="text" name="units" placeholder="কত ব্যাগ" value={requestForm.units} onChange={handleInputChange} required style={{ ...styles.input, flex: 1 }} />
-            </div>
+      {/* ২. ডোনার রেজিস্ট্রেশন ফর্ম */}
+      <section style={styles.card}>
+        <h2 style={styles.cardTitle}>📝 ২. ডোনার রেজিস্ট্রেশন ফর্ম</h2>
+        <form onSubmit={handleRegisterSubmit} style={styles.formGrid}>
+          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} style={styles.input} />
+          <input type="text" placeholder="নাম" value={regForm.name} onChange={(e) => setRegForm({...regForm, name: e.target.value})} required style={styles.input} />
+          
+          <select value={regForm.bloodGroup} onChange={(e) => setRegForm({...regForm, bloodGroup: e.target.value})} style={styles.input}>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
 
-            <input type="text" name="hemoglobin" placeholder="হিমোগ্লোবিন (যদি জানা থাকে)" value={requestForm.hemoglobin} onChange={handleInputChange} style={styles.input} />
-            <input type="text" name="donationDate" placeholder="রক্তদানের তারিখ/সময়" value={requestForm.donationDate} onChange={handleInputChange} required style={styles.input} />
-            <input type="text" name="donationPlace" placeholder="হাসপাতাল/স্থান" value={requestForm.donationPlace} onChange={handleInputChange} required style={styles.input} />
-            <input type="text" name="contactPhone" placeholder="যোগাযোগের মোবাইল নম্বর" value={requestForm.contactPhone} onChange={handleInputChange} required style={styles.input} />
-            <input type="text" name="reference" placeholder="রেফারেন্স (ঐচ্ছিক)" value={requestForm.reference} onChange={handleInputChange} style={styles.input} />
-            
-            <button type="submit" style={styles.submitBtn}>আবেদন জমা দিন</button>
-          </form>
-        </section>
-      </div>
+          <input type="text" placeholder="নাম্বার" value={regForm.phone} onChange={(e) => setRegForm({...regForm, phone: e.target.value})} required style={styles.input} />
+          <input type="password" placeholder="পাসওয়ার্ড" value={regForm.password} onChange={(e) => setRegForm({...regForm, password: e.target.value})} required style={styles.input} />
+          <input type="email" placeholder="ইমেইল" value={regForm.email} onChange={(e) => setRegForm({...regForm, email: e.target.value})} style={styles.input} />
+          <input type="text" placeholder="ঠিকানা" value={regForm.address} onChange={(e) => setRegForm({...regForm, address: e.target.value})} required style={styles.input} />
+          
+          <input 
+            type="text" 
+            placeholder="সিকুরিটি প্রশ্ন (উত্তর দিন)" 
+            value={regForm.securityAnswer} 
+            onChange={(e) => setRegForm({...regForm, securityAnswer: e.target.value})} 
+            required 
+            style={{ ...styles.input, gridColumn: '1 / -1' }} 
+          />
 
-      {/* নিচে: সাম্প্রতিক রক্তের রিকোয়েস্ট */}
-      <section style={{ ...styles.card, marginTop: '30px' }}>
-        <h2 style={styles.cardTitle}>📢 জরুরী রক্তের রিকোয়েস্টসমূহ</h2>
-        {requests.length > 0 ? (
-          <div style={styles.requestsGrid}>
-            {requests.map((req) => (
-              <div key={req._id} style={styles.requestCard}>
-                <span style={styles.badge}>{req.bloodGroup}</span>
-                <h4 style={{ margin: '10px 0 5px 0' }}>রোগী: {req.patientName}</h4>
-                <p style={{ margin: '2px 0', fontSize: '13px' }}>🏥 স্থান: {req.donationPlace}</p>
-                <p style={{ margin: '2px 0', fontSize: '13px' }}>📅 তারিখ: {req.donationDate}</p>
-                <p style={{ margin: '2px 0', fontSize: '13px' }}>📞 যোগাযোগ: {req.contactPhone}</p>
+          <button type="submit" style={{ ...styles.btn, gridColumn: '1 / -1', backgroundColor: '#27ae60' }}>রেজিস্ট্রেশন করুন</button>
+        </form>
+      </section>
+
+      {/* ৩. ডোনার খুঁজুন */}
+      <section style={styles.card}>
+        <h2 style={styles.cardTitle}>🔍 ৩. ডোনার খুঁজুন</h2>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ fontWeight: 'bold', marginRight: '10px' }}>ব্লাড গ্রুপ নির্বাচন করুন:</label>
+          <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} style={styles.input}>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
+
+        {loading ? <p>ডাটা লোড হচ্ছে...</p> : (
+          <div style={styles.donorList}>
+            {donors.map(donor => (
+              <div key={donor._id} style={styles.donorCard}>
+                {donor.imageUrl && <img src={`https://blood-donation-backend-rscs.onrender.com${donor.imageUrl}`} alt="Donor" style={styles.donorImg} />}
+                <h4>{donor.name} ({donor.bloodGroup})</h4>
+                <p>📞 {donor.phone}</p>
+                <p>📍 {donor.address}</p>
               </div>
             ))}
+            {donors.length === 0 && <p>এই গ্রুপের কোনো ডোনার পাওয়া যায়নি।</p>}
           </div>
-        ) : (
-          <p style={{ color: '#7f8c8d' }}>বর্তমানে কোনো জরুরি রক্তের রিকোয়েস্ট নেই।</p>
         )}
+      </section>
+
+      {/* ৪. ডোনার লগইন ও সিকিউরিটি পাসওয়ার্ড রিসেট */}
+      <section style={styles.card}>
+        <h2 style={styles.cardTitle}>🔑 ৪. ডোনার লগইন</h2>
+        {user ? (
+          <div>
+            <h3>স্বাগতম, {user.name}!</h3>
+            <p>আপনার অ্যাকাউন্ট লগইন অবস্থায় রয়েছে।</p>
+            <button onClick={() => setUser(null)} style={{ ...styles.btn, backgroundColor: '#7f8c8d' }}>লগআউট</button>
+          </div>
+        ) : !showReset ? (
+          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px' }}>
+            <input type="text" placeholder="নাম্বার" value={loginForm.phone} onChange={(e) => setLoginForm({...loginForm, phone: e.target.value})} required style={styles.input} />
+            <input type="password" placeholder="পাসওয়ার্ড" value={loginForm.password} onChange={(e) => setLoginForm({...loginForm, password: e.target.value})} required style={styles.input} />
+            <button type="submit" style={styles.btn}>লগইন</button>
+            <button type="button" onClick={() => setShowReset(true)} style={{ background: 'none', border: 'none', color: '#2980b9', cursor: 'pointer', textAlign: 'left' }}>পাসওয়ার্ড ভুলে গেছেন?</button>
+          </form>
+        ) : (
+          <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '400px' }}>
+            <h3>পাসওয়ার্ড রিসেট</h3>
+            <input type="text" placeholder="নাম্বার" value={resetForm.phone} onChange={(e) => setResetForm({...resetForm, phone: e.target.value})} required style={styles.input} />
+            <input type="text" placeholder="সিকুরিটি প্রশ্নের উত্তর" value={resetForm.securityAnswer} onChange={(e) => setResetForm({...resetForm, securityAnswer: e.target.value})} required style={styles.input} />
+            <input type="password" placeholder="নতুন পাসওয়ার্ড" value={resetForm.newPassword} onChange={(e) => setResetForm({...resetForm, newPassword: e.target.value})} required style={styles.input} />
+            <button type="submit" style={{ ...styles.btn, backgroundColor: '#e67e22' }}>পাসওয়ার্ড পরিবর্তন করুন</button>
+            <button type="button" onClick={() => setShowReset(false)} style={{ background: 'none', border: 'none', color: '#7f8c8d', cursor: 'pointer' }}>ফিরে যান</button>
+          </form>
+        )}
+      </section>
+
+      {/* সাম্প্রতিক রিকোয়েস্টসমূহ */}
+      <section style={styles.card}>
+        <h2 style={styles.cardTitle}>📢 সম্প্রতি করা রক্তের রিকোয়েস্টসমূহ</h2>
+        <div style={styles.donorList}>
+          {requests.map(req => (
+            <div key={req._id} style={styles.requestItem}>
+              <span style={styles.badge}>{req.bloodGroup}</span>
+              <p><strong>রোগীর সমস্যা:</strong> {req.patientProblem}</p>
+              <p><strong>পরিমাণ:</strong> {req.amount} | <strong>হিমোগ্লোবিন:</strong> {req.hemoglobin || 'N/A'}</p>
+              <p><strong>তারিখ ও সময়:</strong> {req.donationDate} ({req.donationTime})</p>
+              <p><strong>স্থান:</strong> {req.donationPlace}</p>
+              <p><strong>যোগাযোগ:</strong> {req.contactPhone}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );
 }
 
-// ইনলাইন রেসপন্সিভ স্টাইলস
 const styles = {
-  container: { maxWidth: '1100px', margin: '0 auto', padding: '20px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", backgroundColor: '#f8f9fa', minHeight: '100vh' },
-  header: { textAlign: 'center', backgroundColor: '#e74c3c', color: '#fff', padding: '25px', borderRadius: '12px', marginBottom: '30px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
-  title: { margin: 0, fontSize: '28px' },
-  subtitle: { margin: '5px 0 10px 0', fontSize: '14px', opacity: 0.9 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' },
-  card: { backgroundColor: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  cardTitle: { borderBottom: '2px solid #e74c3c', paddingBottom: '10px', marginTop: 0, color: '#2c3e50', fontSize: '20px' },
-  filterBox: { display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px' },
-  selectInput: { padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '16px', cursor: 'pointer' },
-  listContainer: { display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '350px', overflowY: 'auto' },
-  listItem: { padding: '12px', borderLeft: '4px solid #e74c3c', backgroundColor: '#fff5f5', borderRadius: '4px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' },
-  input: { padding: '10px', borderRadius: '5px', border: '1px solid #ddd', fontSize: '14px' },
-  submitBtn: { padding: '12px', backgroundColor: '#e74c3c', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' },
-  requestsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px', marginTop: '15px' },
-  requestCard: { position: 'relative', padding: '15px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fafafa' },
-  badge: { position: 'absolute', top: '10px', right: '10px', backgroundColor: '#e74c3c', color: '#fff', padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }
+  container: { maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: '#f4f6f7' },
+  header: { display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#c0392b', color: '#fff', padding: '20px', borderRadius: '10px', marginBottom: '20px' },
+  logo: { width: '80px', height: '80px', borderRadius: '50%', border: '3px solid #fff' },
+  headerTitle: { margin: 0, fontSize: '24px' },
+  card: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  cardTitle: { borderBottom: '2px solid #c0392b', paddingBottom: '8px', marginTop: 0, color: '#2c3e50' },
+  formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' },
+  input: { padding: '10px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '14px' },
+  btn: { padding: '10px 15px', backgroundColor: '#c0392b', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' },
+  donorList: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' },
+  donorCard: { padding: '15px', border: '1px solid #eee', borderRadius: '8px', textAlign: 'center', backgroundColor: '#fafafa' },
+  donorImg: { width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover' },
+  requestItem: { position: 'relative', padding: '15px', borderLeft: '4px solid #c0392b', backgroundColor: '#fff5f5', borderRadius: '4px' },
+  badge: { position: 'absolute', top: '10px', right: '10px', backgroundColor: '#c0392b', color: '#fff', padding: '3px 8px', borderRadius: '10px', fontSize: '12px' }
 };
 
 export default App;
